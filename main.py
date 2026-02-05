@@ -57,8 +57,6 @@ def analyze(data: dict, x_api_key: str = Header(None)):
             "is_scam": False,
             "confidence": score
         }
-        if "otp" in msg.lower():
-    score = max(score, 0.75)
 
     return {
         "is_scam": True,
