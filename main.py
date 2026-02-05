@@ -4,6 +4,13 @@ from datetime import datetime
 import os
 
 app = FastAPI()
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "message": "Honey-pot API is running"
+    }
+
 
 API_KEY = "TEST_API_KEY"
 
