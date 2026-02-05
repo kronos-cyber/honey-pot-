@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Header, HTTPException
 import pickle, re
 from datetime import datetime
-import os
 
 app = FastAPI()
+
 @app.get("/")
 def root():
     return {
@@ -11,14 +11,12 @@ def root():
         "message": "Honey-pot API is running"
     }
 
-
 API_KEY = "TEST_API_KEY"
 
-# Load model
+# 🔹 Load model once (correct)
 with open("scam_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# Load vectorizer
 with open("vectorizer.pkl", "rb") as f:
     vectorizer = pickle.load(f)
 
@@ -38,22 +36,27 @@ def extract(text):
 def health():
     return {"status": "ok", "service": "agentic-honeypot"}
 
+# ✅ TEST ENDPOINT
 @app.post("/api/v1/test")
-def test(auth: str = Header(None)):
-    if auth != f"Bearer {API_KEY}":
-        raise HTTPException(status_code=401)
+def test(x_api_key: str = Header(None)):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
     return {"status": "success", "timestamp": datetime.utcnow()}
 
+# ✅ MAIN ENDPOINT (GUVI COMPATIBLE)
 @app.post("/api/v1/agentic-honeypot/analyze")
-def analyze(data: dict, auth: str = Header(None)):
-    if auth != f"Bearer {API_KEY}":
-        raise HTTPException(status_code=401)
+def analyze(data: dict, x_api_key: str = Header(None)):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
-    msg = data.get("message","")
+    msg = data.get("message", "")
     score = predict(msg)
 
     if score < 0.7:
-        return {"is_scam": False, "confidence": score}
+        return {
+            "is_scam": False,
+            "confidence": score
+        }
 
     return {
         "is_scam": True,
